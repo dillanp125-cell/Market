@@ -24,6 +24,7 @@ import requests
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import anthropic
 
 # ── Config ────────────────────────────────────────────────────────────────────
@@ -187,7 +188,7 @@ def send_email(subject: str, html_body: str):
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    now = datetime.now()
+    now = datetime.now(ZoneInfo("America/New_York"))
     print(f"🏦 Fetching market data at {now.strftime('%H:%M')}...")
 
     quotes = []
