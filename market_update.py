@@ -18,6 +18,7 @@ Usage:
 
 import os
 import json
+import time
 import smtplib
 import requests
 from email.mime.text import MIMEText
@@ -52,7 +53,7 @@ EMAIL_APP_PASSWORD = os.environ["EMAIL_APP_PASSWORD"]
 print(f"✅ All secrets loaded. Sending to: {EMAIL_TO}")
 
 # Stocks/ETFs to track — customize this list
-TICKERS = ["SPY", "QQQ", "AAPL", "MSFT", "NVDA", "BTC-USD"]
+TICKERS = ["SPY", "QQQ", "VIX", "TLT", "GLD", "NVDA"]
 
 # ── Data Fetching ─────────────────────────────────────────────────────────────
 
@@ -127,6 +128,7 @@ def fetch_economic_indicators() -> dict:
                 indicators[label] = "N/A"
         except Exception as e:
             indicators[label] = f"Error: {e}"
+        time.sleep(12)  # rate limit between indicator calls
     return indicators
 
 
@@ -188,9 +190,18 @@ def main():
     now = datetime.now()
     print(f"🏦 Fetching market data at {now.strftime('%H:%M')}...")
 
-    quotes   = [fetch_quote(t) for t in TICKERS]
-    news     = fetch_market_news()
-    econ     = fetch_economic_indicators()
+    quotes = []
+    for ticker in TICKERS:
+        quotes.append(fetch_quote(ticker))
+        print(f"  fetched {ticker}")
+        time.sleep(12)  # Alpha Vantage free tier: 5 calls/min = 12s gap
+
+    print("  fetching news...")
+    news = fetch_market_news()
+    time.sleep(12)
+
+    print("  fetching economic indicators...")
+    econ = fetch_economic_indicators()
 
     print("🤖 Generating Claude summary...")
     summary  = generate_summary(quotes, news, econ)
