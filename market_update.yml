@@ -1,0 +1,43 @@
+# .github/workflows/market_update.yml
+# Place this file at: .github/workflows/market_update.yml in your repo
+
+name: Market Update
+
+on:
+  schedule:
+    # Times are in UTC. ET = UTC-4 (summer) / UTC-5 (winter)
+    # Adjust the hours below to match your preferred ET times:
+    #   9:00 AM ET  = 13:00 UTC
+    #  12:00 PM ET  = 16:00 UTC
+    #   4:00 PM ET  = 20:00 UTC
+    - cron: '0 13 * * 1-5'   # 9:00 AM ET, Mon–Fri (market open)
+    - cron: '0 16 * * 1-5'   # 12:00 PM ET, Mon–Fri (midday)
+    - cron: '0 20 * * 1-5'   # 4:00 PM ET, Mon–Fri (market close)
+
+  # Also lets you trigger it manually from GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  send-market-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests anthropic
+
+      - name: Run market update
+        env:
+          ANTHROPIC_API_KEY:   ${{ secrets.ANTHROPIC_API_KEY }}
+          ALPHA_VANTAGE_KEY:   ${{ secrets.ALPHA_VANTAGE_KEY }}
+          EMAIL_FROM:          ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO:            ${{ secrets.EMAIL_TO }}
+          EMAIL_APP_PASSWORD:  ${{ secrets.EMAIL_APP_PASSWORD }}
+        run: python market_update.py
